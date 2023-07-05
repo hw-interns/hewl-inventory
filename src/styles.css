@@ -1,0 +1,60 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+@font-face {
+    font-family: 'Avenir Book'; 
+    src: url('/static/fonts/AvenirLTStd-Book.otf');
+  }
+  
+  @font-face {
+    font-family: 'Avenir Heavy'; 
+    src: url('/static/fonts/AvenirLTStd-Heavy.otf');
+  }
+  
+  @font-face {
+    font-family: 'Avenir Light'; 
+    src: url('/static/fonts/AvenirLTStd-Light.otf');
+  }
+  
+  @font-face {
+    font-family: 'Avenir Medium'; 
+    src: url('/static/fonts/AvenirLTStd-Medium.otf');
+  }
+  
+  @font-face {
+    font-family: 'Produkt Bold'; 
+    src: url('/static/fonts/Produkt-Bold.otf');
+  }
+  
+  @font-face {
+    font-family: 'Produkt Light'; 
+    src: url('/static/fonts/Produkt-Light.otf');
+  }
+  
+  @font-face {
+    font-family: 'Produkt Medium'; 
+    src: url('/static/fonts/Produkt-Medium.otf');
+  }
+  
+  @font-face {
+    font-family: 'Produkt Regular'; 
+    src: url('/static/fonts/Produkt-Regular.otf');
+  }
+  
+  @font-face {
+    font-family: 'Produkt Semibold'; 
+    src: url('/static/fonts/Produkt-Semibold.otf');
+  }
+  

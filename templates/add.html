@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add New Item</title>
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto my-8">
+        <h1 class="text-4xl mb-6">Add New Item</h1>
+
+        <form action="/add" method="post" class="w-full max-w-sm">
+            <div class="mb-4">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" type="text" name="user" placeholder="Your Name" required>
+            </div>
+            <div class="mb-4">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" type="text" name="name" placeholder="Name" required>
+            </div>
+            <div class="mb-4">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" type="text" name="location" placeholder="Location" required>
+            </div>
+            <div class="mb-4">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" type="text" name="department" placeholder="Department" required>
+            </div>
+            <div class="mb-6">
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" type="number" name="quantity" placeholder="Quantity" required>
+            </div>
+            <button type="submit" class="mb-6 bg-ucsb-navy hover:bg-ucsb-sea-green text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add</button>
+        </form>
+
+        <a href="/" class="inline-block align-baseline font-bold text-sm text-ucsb-navy hover:text-ucsb-sea-green">Back</a>
+    </div>
+</body>
+</html>
