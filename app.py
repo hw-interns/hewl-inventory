@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
 from datetime import datetime
 import os
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL_REAL')
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
