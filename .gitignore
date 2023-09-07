@@ -5,3 +5,4 @@ instance/
 *.pyc
 __pycache__/
 *.log
+.env
