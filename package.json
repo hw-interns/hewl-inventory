@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "python app.py",
     "build-css": "npx tailwindcss -i src/styles.css -o static/css/styles.css"
   },
   "keywords": [],

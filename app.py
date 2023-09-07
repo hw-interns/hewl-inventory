@@ -64,6 +64,9 @@ def home():
     supplies = OfficeSupply.query.all()
     return render_template('home.html', supplies=supplies)
 
+@app.route('/instructions')
+def instructions():
+    return render_template('instructions.html')
 
 @app.route('/update', methods=['POST'])
 def update():

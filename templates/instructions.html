@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Office Supplies</title>
+    <!-- Tailwind CSS -->
+    <link
+      href="{{ url_for('static', filename='css/styles.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mx-auto my-8">
+      <div class="items-center mb-6">
+        <div class="flex items-center">
+          <img
+            src="{{ url_for('static', filename='images/HEWL_Vertical.png') }}"
+            alt="Health & Wellness Logo"
+            width="80"
+            height="80"
+            class="mr-4"
+            href="/"
+          />
+          <h1 class="font-produkt-bold text-4xl">
+            Health & Wellness Office Supplies Tracker
+          </h1>
+        </div>
+        <div class="container mx-auto my-8 bg-gray-400">
+          <h2 class="font-produkt-bold text-3xl">Instructions</h2>
+          <p>
+            Please use this app to keep track of Health and Wellness inventory!
+            All updates should come in on Fridays after the last shift. Please
+            take notes on current inventory levels so we can send updates to get
+            low stock reordered!
+          </p>
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-8"
+            href="/"
+          >
+            Home
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
