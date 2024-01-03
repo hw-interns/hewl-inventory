@@ -101,51 +101,44 @@ def add():
     minQuantity = request.form.get('minQuantity', '')
     user = request.form.get('user', '')
 
-    if 'file' not in request.files:
-        return jsonify({'message': 'No file part in the request'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'message': 'No file selected for uploading'}), 400
+    # if 'file' not in request.files:
+    #     return jsonify({'message': 'No file part in the request'}), 400
+    # file = request.files['file']
+    # if file.filename == '':
+    #     return jsonify({'message': 'No file selected for uploading'}), 400
 
-    if file:
-        try:
-            filename = secure_filename(file.filename)
-            upload_result = cloudinary.uploader.upload(file, public_id = filename, folder="office_supplies/")
-            image_url = upload_result['secure_url']
-            image_name = upload_result['public_id']
+    # if file:
+    #     try:
+    #         filename = secure_filename(file.filename)
+    #         upload_result = cloudinary.uploader.upload(file, public_id = filename, folder="office_supplies/")
+    #         image_url = upload_result['secure_url']
+    #         image_name = upload_result['public_id']
 
-            new_supply = OfficeSupply(
-                name=name,
-                image_url=image_url,
-                image_name=image_name,
-                location=location,
-                department=department,
-                quantity=quantity,
-                minQuantity=minQuantity
-            )
-            db.session.add(new_supply)
-            db.session.flush()
+    new_supply = OfficeSupply(
+        name=name,
+        image_url='',
+        image_name='',
+        location=location,
+        department=department,
+        quantity=quantity,
+        minQuantity=minQuantity
+    )
+    db.session.add(new_supply)
+    db.session.flush()
 
-            new_log = ChangeLog(
-                user=user, 
-                action=f"added a new item: {name}, Quantity: {quantity}"
-            )
-            db.session.add(new_log)
-            db.session.commit()
+    new_log = ChangeLog(
+        user=user, 
+        action=f"added a new item: {name}, Quantity: {quantity}"
+    )
+    db.session.add(new_log)
+    db.session.commit()
 
-            response = jsonify({
-                'message': f'{name} added successfully',
-                'image_url': image_url,
-                'image_name': image_name,
-                'id': new_supply.id
-            })
-            response.status_code = 201
-            return response
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'message': str(e)}), 500
-    else:
-        return jsonify({'message': 'Missing image or invalid file type'}), 400
+    response = jsonify({
+        'message': f'{name} added successfully',
+        'id': new_supply.id
+    })
+    response.status_code = 201
+    return response
 
 #Update API for updating items
 @app.route('/api/update', methods=['POST'])
