@@ -4,8 +4,8 @@ import Image from "next/image";
 import InventoryItem from "@/components/InventoryItem";
 import Modal from "@/components/Modal";
 import InventoryForm from "@/components/InventoryForm";
-import axios from "axios";
-import { useState, useEffect, ReactEventHandler } from "react";
+import { fetchSupplies } from "@/services/InventoryServices";
+import { useState, useEffect } from "react";
 import ItemProps from "@/data/item-props";
 
 const Home = () => {
@@ -13,17 +13,16 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchSupplies = async () => {
+    const loadSupplies = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/api/supplies");
-        console.log("response:", response);
-        setInventoryItems(response.data);
+        const supplies = await fetchSupplies();
+        setInventoryItems(supplies);
       } catch (error) {
-        console.error("Error fetching supplies:", error);
+        console.error(error);
       }
     };
 
-    fetchSupplies();
+    loadSupplies();
   }, []);
 
   const handleAddItem = () => {
