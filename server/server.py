@@ -11,7 +11,9 @@ from flask_migrate import Migrate
 
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 DATABASE_URL = os.environ.get('DATABASE_URL_REAL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
@@ -22,14 +24,9 @@ cloudinary.config(
   api_secret = os.getenv('CLOUDINARY_API_SECRET') 
 )
 
-allowed_origins = [
-    "http://localhost:3000",
-    "https://hewl-inventory.vercel.app/"
-]
-
-app = Flask(__name__, static_folder='client/build', static_url_path='')
-CORS(app, origins=allowed_origins)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+app = Flask(__name__)
+CORS(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -47,12 +44,12 @@ mail = Mail(app)
 class OfficeSupply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    image_url = db.Column(db.String(255))
-    image_name = db.Column(db.String(255))
+    # image_url = db.Column(db.String(255))
+    # image_name = db.Column(db.String(255))
     location = db.Column(db.String(120), nullable=False)
     department = db.Column(db.String(120), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    minQuantity = db.Column(db.Integer, nullable=False)
+    min_quantity = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
         return f'<OfficeSupply {self.name}>'
@@ -85,8 +82,6 @@ def get_supplies():
         {
             'id': supply.id,
             'name': supply.name,
-            'image_url': supply.image_url,
-            'image_name': supply.image_name,
             'location': supply.location,
             'department': supply.department,
             'quantity': supply.quantity,
@@ -121,8 +116,6 @@ def add():
 
     new_supply = OfficeSupply(
         name=name,
-        image_url='',
-        image_name='',
         location=location,
         department=department,
         quantity=quantity,
@@ -201,22 +194,22 @@ def clear():
         return response
 
 #POST API for uploading images
-@app.route('/api/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'message': 'No file part'}), 400
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'message': 'No selected file'}), 400
+# @app.route('/api/upload', methods=['POST'])
+# def upload_file():
+#     if 'file' not in request.files:
+#         return jsonify({'message': 'No file part'}), 400
+#     file = request.files['file']
+#     if file.filename == '':
+#         return jsonify({'message': 'No selected file'}), 400
 
-    if file:
-        filename = secure_filename(file.filename)
-        try:
-            upload_result = cloudinary.uploader.upload(file, public_id=filename, folder = "images/")
-            url = upload_result['secure_url']
-            return jsonify({'message': 'Image uploaded successfully', 'url': url}), 200
-        except Exception as e:
-            return jsonify({'message': str(e)}), 500
+#     if file:
+#         filename = secure_filename(file.filename)
+#         try:
+#             upload_result = cloudinary.uploader.upload(file, public_id=filename, folder = "images/")
+#             url = upload_result['secure_url']
+#             return jsonify({'message': 'Image uploaded successfully', 'url': url}), 200
+#         except Exception as e:
+#             return jsonify({'message': str(e)}), 500
 
 #Method for sendgrid emailnotifications
 def send_notification_email(supply_name, current_quantity, min_quantity):
