@@ -12,21 +12,21 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
   const [department, setDepartment] = useState("");
   const [quantity, setQuantity] = useState<number>(0);
   const [minQuantity, setMinQuantity] = useState<number>(0);
-  const [file, setFile] = useState<File | null>(null);
+  // const [file, setFile] = useState<File | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setFile(files[0]);
-    }
-  };
+  // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = e.target.files;
+  //   if (files) {
+  //     setFile(files[0]);
+  //   }
+  // };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!file) {
-      alert("Please select an image file to upload.");
-      return;
-    }
+    // if (!file) {
+    //   alert("Please select an image file to upload.");
+    //   return;
+    // }
 
     const formData = new FormData();
     formData.append("name", name);
@@ -34,7 +34,7 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
     formData.append("department", department);
     formData.append("quantity", quantity.toString());
     formData.append("minQuantity", minQuantity.toString());
-    formData.append("file", file);
+    // formData.append("file", file);
 
     try {
       const response = await InventoryService.addSupply(formData);
@@ -46,7 +46,6 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
   };
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Item Name Input */}
       <div>
         <label
           htmlFor="itemName"
@@ -66,8 +65,6 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
         />
       </div>
 
-      {/* Other input fields for location, department, quantity, minQuantity */}
-      {/* Location Input */}
       <div>
         <label
           htmlFor="itemLocation"
@@ -87,7 +84,6 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
         />
       </div>
 
-      {/* Department Input */}
       <div>
         <label
           htmlFor="itemDepartment"
@@ -127,7 +123,6 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
         />
       </div>
 
-      {/* Minimum Quantity Input */}
       <div>
         <label
           htmlFor="minQuantity"
@@ -146,8 +141,7 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
           required
         />
       </div>
-
-      {/* Image Upload Input */}
+      {/* 
       <div>
         <label
           htmlFor="fileUpload"
@@ -163,9 +157,8 @@ const InventoryForm = ({ onClose }: InventoryFormProps) => {
           className="mt-1 block w-full"
           required
         />
-      </div>
+      </div> */}
 
-      {/* Submit Button */}
       <div className="text-right">
         <button
           type="submit"

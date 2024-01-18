@@ -22,8 +22,13 @@ cloudinary.config(
   api_secret = os.getenv('CLOUDINARY_API_SECRET') 
 )
 
+allowed_origins = [
+    "http://localhost:3000",
+    "https://hewl-inventory.vercel.app/"
+]
+
 app = Flask(__name__, static_folder='client/build', static_url_path='')
-CORS(app, origins="http://localhost:3000")
+CORS(app, origins=allowed_origins)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
