@@ -1,6 +1,7 @@
 import axios from "axios";
+import process from "process";
 
-const API_URL = "http://127.0.0.1:5000/api";
+const API_URL = process.env.API_URL || "http://127.0.0.1:5000/api";
 
 export const fetchSupplies = async () => {
   try {

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
@@ -8,6 +8,7 @@ import cloudinary
 import cloudinary.uploader
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
+from flasgger import Swagger
 
 from datetime import datetime
 import os
@@ -29,6 +30,7 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+Swagger(app)
 
 app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
 app.config['MAIL_PORT'] = 587
@@ -44,8 +46,6 @@ mail = Mail(app)
 class OfficeSupply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    # image_url = db.Column(db.String(255))
-    # image_name = db.Column(db.String(255))
     location = db.Column(db.String(120), nullable=False)
     department = db.Column(db.String(120), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
@@ -67,15 +67,65 @@ class ChangeLog(db.Model):
 with app.app_context():
     db.create_all()
 
-#Test API
+# Redirect root to Swagger documentation
+@app.route('/')
+def home():
+    return redirect(url_for('flasgger.apidocs'))
+
 @app.route('/api/test', methods=['GET'])
 def get_data():
+    """
+    Test API Endpoint
+    ---
+    tags:
+      - Test
+    responses:
+      200:
+        description: Returns a success message
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Flask API is online!
+    """
     data = {'message': 'Flask API is online!'}
     return jsonify(data)
 
-#Get API for Supplies
 @app.route('/api/supplies', methods=['GET'])
 def get_supplies():
+    """
+    Retrieve all supplies
+    ---
+    tags:
+      - Supplies
+    responses:
+      200:
+        description: A list of all supplies
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Pencils"
+              location:
+                type: string
+                example: "Storage Room"
+              department:
+                type: string
+                example: "Stationery"
+              quantity:
+                type: integer
+                example: 100
+              min_quantity:
+                type: integer
+                example: 20
+    """
     supplies = OfficeSupply.query.all()
     print('supplies', supplies)
     supply_list = [
@@ -85,41 +135,66 @@ def get_supplies():
             'location': supply.location,
             'department': supply.department,
             'quantity': supply.quantity,
-            'minQuantity': supply.minQuantity
+            'min_quantity': supply.min_quantity
         }
         for supply in supplies
     ]
     return jsonify(supply_list)
 
-#Post API for adding new supply
 @app.route('/api/add', methods=['POST'])
 def add():
+    """
+    Add a new supply
+    ---
+    tags:
+      - Supplies
+    parameters:
+      - in: formData
+        name: name
+        type: string
+        required: true
+      - in: formData
+        name: location
+        type: string
+        required: true
+      - in: formData
+        name: department
+        type: string
+        required: true
+      - in: formData
+        name: quantity
+        type: integer
+        required: true
+      - in: formData
+        name: min_quantity
+        type: integer
+        required: true
+    responses:
+      201:
+        description: New supply added successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Supply added successfully"
+            id:
+              type: integer
+              example: 1
+    """
     name = request.form.get('name', '')
     location = request.form.get('location', '')
     department = request.form.get('department', '')
     quantity = request.form.get('quantity', '')
-    minQuantity = request.form.get('minQuantity', '')
+    min_quantity = request.form.get('min_quantity', '')
     user = request.form.get('user', '')
-
-    # if 'file' not in request.files:
-    #     return jsonify({'message': 'No file part in the request'}), 400
-    # file = request.files['file']
-    # if file.filename == '':
-    #     return jsonify({'message': 'No file selected for uploading'}), 400
-
-    # if file:
-    #     try:
-    #         filename = secure_filename(file.filename)
-    #         upload_result = cloudinary.uploader.upload(file, public_id = filename, folder="office_supplies/")
-    #         image_url = upload_result['secure_url']
-    #         image_name = upload_result['public_id']
 
     new_supply = OfficeSupply(
         name=name,
         location=location,
         department=department,
         quantity=quantity,
-        minQuantity=minQuantity
+        min_quantity=min_quantity
     )
     db.session.add(new_supply)
     db.session.flush()
@@ -138,9 +213,35 @@ def add():
     response.status_code = 201
     return response
 
-#Update API for updating items
 @app.route('/api/update', methods=['POST'])
 def update():
+    """
+    Update a supply's quantity
+    ---
+    tags:
+      - Supplies
+    parameters:
+      - in: formData
+        name: id
+        type: integer
+        required: true
+      - in: formData
+        name: quantity_change
+        type: integer
+        required: true
+    responses:
+      200:
+        description: Supply quantity updated
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            new_quantity:
+              type: integer
+              example: 110
+    """
     id = request.form['id']
     quantity_change = int(request.form['quantity_change'])
     user = request.form['user']
@@ -148,8 +249,8 @@ def update():
     supply = OfficeSupply.query.get(id)
     supply.quantity += quantity_change
     
-    if supply.quantity < supply.minQuantity:
-        send_notification_email(supply.name, supply.quantity, supply.minQuantity)
+    if supply.quantity < supply.min_quantity:
+        send_notification_email(supply.name, supply.quantity, supply.min_quantity)
 
     # Create a new ChangeLog entry
     new_log = ChangeLog(user=user, action=f"updated quantity of {supply.name} by {quantity_change}")
@@ -160,9 +261,28 @@ def update():
     return jsonify({'id': id, 'new_quantity': supply.quantity})
 
 
-#Delete API
 @app.route('/api/delete', methods=['POST'])
 def delete():
+    """
+    Delete a supply
+    ---
+    tags:
+      - Supplies
+    parameters:
+      - in: formData
+        name: id
+        type: integer
+        required: true
+    responses:
+      200:
+        description: Supply deleted successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Data removed successfully"
+    """
     id = request.form['id']
     supply = OfficeSupply.query.get(id)
     
@@ -173,9 +293,23 @@ def delete():
     response.status_code = 200
     return response
 
-#DELETE API for clearing the table
 @app.route('/api/clear', methods=['DELETE'])
 def clear():
+    """
+    Clear all supplies
+    ---
+    tags:
+      - Supplies
+    responses:
+      200:
+        description: All supplies cleared
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Table cleared successfully"
+    """
     try:
         OfficeSupply.query.delete()
         ChangeLog.query.delete()
@@ -193,25 +327,6 @@ def clear():
         response.status_code = 500
         return response
 
-#POST API for uploading images
-# @app.route('/api/upload', methods=['POST'])
-# def upload_file():
-#     if 'file' not in request.files:
-#         return jsonify({'message': 'No file part'}), 400
-#     file = request.files['file']
-#     if file.filename == '':
-#         return jsonify({'message': 'No selected file'}), 400
-
-#     if file:
-#         filename = secure_filename(file.filename)
-#         try:
-#             upload_result = cloudinary.uploader.upload(file, public_id=filename, folder = "images/")
-#             url = upload_result['secure_url']
-#             return jsonify({'message': 'Image uploaded successfully', 'url': url}), 200
-#         except Exception as e:
-#             return jsonify({'message': str(e)}), 500
-
-#Method for sendgrid emailnotifications
 def send_notification_email(supply_name, current_quantity, min_quantity):
     subject = f"Inventory Alert: {supply_name}"
     recipients = [SENDGRID_EMAIL]
