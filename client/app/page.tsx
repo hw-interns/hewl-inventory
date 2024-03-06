@@ -1,18 +1,9 @@
-"use client";
 import HomeContainer from "@/app/home";
-import { SessionProvider } from "next-auth/react";
-import { Session } from "next-auth";
 
-interface Props {
-  session: Session | null;
-}
-
-const Home = ({ session }: Props) => {
+const Home = () => {
   return (
     <>
-      <SessionProvider session={session}>
-        <HomeContainer />
-      </SessionProvider>
+      <HomeContainer />
     </>
   );
 };

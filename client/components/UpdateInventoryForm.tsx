@@ -25,7 +25,7 @@ const UpdateInventoryForm = ({
 
     try {
       const response = await InventoryService.updateSupply(
-        item.id,
+        parseInt(item.id),
         quantityChange,
         user
       );
