@@ -1,7 +1,7 @@
 import axios from "axios";
 import process from "process";
 
-const API_URL = "https://hewl-inventory-tracker-5f0d7eb70170.herokuapp.com/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetchSupplies = async () => {
   try {
