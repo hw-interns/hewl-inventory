@@ -2,75 +2,96 @@ import React, { useState } from "react";
 import InventoryService from "@/services/InventoryServices";
 import ItemProps from "@/data/item-props";
 
-interface UpdateInventoryFormProps {
-  item: ItemProps;
-  onClose: () => void;
-  onItemUpdated: () => void;
-  user: string; // You'll need to pass the user information to this form
-}
-
-const UpdateInventoryForm = ({
+const EditItemForm = ({
   item,
   onClose,
   onItemUpdated,
-  user,
-}: UpdateInventoryFormProps) => {
-  const [quantity, setQuantity] = useState<number>(item.quantity);
+}: {
+  item: ItemProps;
+  onClose: () => void;
+  onItemUpdated: () => void;
+}) => {
+  const [quantity, setQuantity] = useState(item.quantity);
+  const [minQuantity, setMinQuantity] = useState(item.min_quantity);
+  const [location, setLocation] = useState(item.location);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    // Calculate the change in quantity
-    const quantityChange = quantity - item.quantity;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
     try {
-      const response = await InventoryService.updateSupply(
-        parseInt(item.id),
-        quantityChange,
-        user
-      );
-      console.log("Supply updated:", response.data);
+      await InventoryService.updateItemDetails(Number(item.id), {
+        quantity,
+        minQuantity,
+        location,
+      });
       onClose();
       onItemUpdated();
     } catch (error) {
-      console.error("Error updating supply:", error);
+      console.error("Error updating item:", error);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* ... other form fields ... */}
-
-      {/* Quantity Input */}
       <div>
         <label
-          htmlFor="itemQuantity"
+          htmlFor="quantity"
           className="block text-sm font-medium text-gray-700"
         >
-          Quantity
+          Quantity:
         </label>
         <input
+          id="quantity"
           type="number"
-          id="itemQuantity"
-          name="quantity"
           value={quantity}
           onChange={(e) => setQuantity(Number(e.target.value))}
-          placeholder="Quantity"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           required
         />
       </div>
 
-      <div className="text-right">
-        <button
-          type="submit"
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      <div>
+        <label
+          htmlFor="minQuantity"
+          className="block text-sm font-medium text-gray-700"
         >
-          Update
-        </button>
+          Minimum Quantity:
+        </label>
+        <input
+          id="minQuantity"
+          type="number"
+          value={minQuantity}
+          onChange={(e) => setMinQuantity(Number(e.target.value))}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          required
+        />
       </div>
+
+      <div>
+        <label
+          htmlFor="location"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Location:
+        </label>
+        <input
+          id="location"
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          required
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        Update Item
+      </button>
     </form>
   );
 };
 
-export default UpdateInventoryForm;
+export default EditItemForm;

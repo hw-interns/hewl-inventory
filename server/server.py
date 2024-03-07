@@ -242,23 +242,32 @@ def update():
               type: integer
               example: 110
     """
-    id = request.form['id']
-    quantity_change = int(request.form['quantity_change'])
-    user = request.form['user']
+    id = request.form.get('id')
+    new_quantity = int(request.form.get('quantity'))
+    new_min_quantity = int(request.form.get('min_quantity'))
+    new_location = request.form.get('location')
     
-    supply = OfficeSupply.query.get(id)
-    supply.quantity += quantity_change
-    
-    if supply.quantity < supply.min_quantity:
-        send_notification_email(supply.name, supply.quantity, supply.min_quantity)
 
-    # Create a new ChangeLog entry
-    new_log = ChangeLog(user=user, action=f"updated quantity of {supply.name} by {quantity_change}")
+    supply = OfficeSupply.query.get(id)
+    if not supply:
+        return jsonify({'error': 'Supply not found'}), 404
+    
+    supply.quantity = new_quantity
+    supply.min_quantity = new_min_quantity
+    supply.location = new_location
+
+    user = request.form.get('user', 'Unknown')
+    new_log = ChangeLog(user=user, action=f"Updated details of {supply.name}")
     db.session.add(new_log)
-    
+
     db.session.commit()
-    
-    return jsonify({'id': id, 'new_quantity': supply.quantity})
+
+    return jsonify({
+        'id': id,
+        'new_quantity': supply.quantity,
+        'new_min_quantity': supply.min_quantity,
+        'new_location': supply.location
+    })
 
 
 @app.route('/api/delete', methods=['POST'])

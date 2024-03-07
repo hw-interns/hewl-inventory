@@ -24,15 +24,33 @@ const addSupply = async (formData: FormData) => {
   return axios.post(`${API_URL}/add`, formData);
 };
 
-const updateSupply = async (
+const updateItemDetails = async (
   id: number,
-  quantityChange: number,
-  user: string
+  {
+    quantity,
+    minQuantity,
+    location,
+  }: { quantity: number; minQuantity: number; location: string }
 ) => {
   return axios.post(`${API_URL}/update`, {
     id,
-    quantity_change: quantityChange,
-    user,
+    quantity,
+    min_quantity: minQuantity,
+    location,
+  });
+};
+
+const updateSupply = async (
+  id: number,
+  quantity: number,
+  min_quantity: number,
+  location: string
+) => {
+  return axios.post(`${API_URL}/update`, {
+    id,
+    quantity: quantity,
+    min_quantity: min_quantity,
+    location,
   });
 };
 
@@ -47,6 +65,7 @@ const clearTable = async () => {
 const InventoryService = {
   getSupplies,
   addSupply,
+  updateItemDetails,
   updateSupply,
   deleteSupply,
   clearTable,
