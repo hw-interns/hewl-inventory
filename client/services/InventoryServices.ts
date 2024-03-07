@@ -1,5 +1,4 @@
 import axios from "axios";
-import process from "process";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -11,6 +10,10 @@ export const fetchSupplies = async () => {
     console.error("Error fetching supplies:", error);
     throw error;
   }
+};
+
+const testAPI = async () => {
+  return axios.get(`${API_URL}/test`);
 };
 
 const getSupplies = async () => {
@@ -47,6 +50,7 @@ const InventoryService = {
   updateSupply,
   deleteSupply,
   clearTable,
+  testAPI,
 };
 
 export default InventoryService;
