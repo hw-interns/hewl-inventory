@@ -26,7 +26,7 @@ cloudinary.config(
 )
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -242,9 +242,10 @@ def update():
               type: integer
               example: 110
     """
+    print("Received form data:", request.form)
     id = request.form.get('id')
-    new_quantity = int(request.form.get('quantity'))
-    new_min_quantity = int(request.form.get('min_quantity'))
+    new_quantity = request.form.get('quantity')
+    new_min_quantity = request.form.get('min_quantity')
     new_location = request.form.get('location')
     
 

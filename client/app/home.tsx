@@ -56,23 +56,32 @@ const Home = () => {
 
   return (
     <>
-      <header className="bg-white py-12 px-12 flex justify-between items-center">
-        <div className="m-6 h-6">
-          <Image
-            src="/logo.png"
-            alt="Health & Wellness Inventory Tracker"
-            width={200}
-            height={200}
-            priority
-            style={{ objectFit: "contain" }}
-          />
+      <header className="bg-gray-50 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-3">
+          <div className="shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={200}
+              height={200}
+              priority
+            />
+          </div>
+
+          <div className="flex-grow"></div>
+
+          <h1 className="text-2xl font-bold text-gray-800 whitespace-nowrap">
+            Inventory Tracker
+          </h1>
+
+          <div className="flex-grow"></div>
+
+          <div className="shrink-0">
+            <Login />
+          </div>
         </div>
-        <h1 className="font-bold text-lg md:text-2xl">
-          Health & Wellness Inventory Tracker
-        </h1>
-        <Login />
       </header>
-      <div className="flex justify-center my-6">
+      <div className="flex justify-center mt-12">
         <button
           onClick={handleAddItem}
           className="bg-green-500 text-white py-2 px-4 rounded"

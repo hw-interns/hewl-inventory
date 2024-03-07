@@ -11,14 +11,16 @@ const Modal: React.FC<ModalProps> = ({ show, onClose, children }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-lg z-50 max-w-lg w-full">
-        {children}
+      <div className="relative bg-white p-6 rounded-lg shadow-lg z-50 max-w-lg w-full">
         <button
           onClick={onClose}
-          className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50"
+          className="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500"
+          aria-label="Close modal"
         >
-          Close
+          <span className="text-2xl">&times;</span>{" "}
         </button>
+
+        {children}
       </div>
     </div>
   );

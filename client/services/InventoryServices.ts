@@ -24,34 +24,27 @@ const addSupply = async (formData: FormData) => {
   return axios.post(`${API_URL}/add`, formData);
 };
 
-const updateItemDetails = async (
-  id: number,
-  {
-    quantity,
-    minQuantity,
-    location,
-  }: { quantity: number; minQuantity: number; location: string }
-) => {
-  return axios.post(`${API_URL}/update`, {
-    id,
-    quantity,
-    min_quantity: minQuantity,
-    location,
-  });
-};
-
 const updateSupply = async (
   id: number,
   quantity: number,
   min_quantity: number,
   location: string
 ) => {
-  return axios.post(`${API_URL}/update`, {
-    id,
-    quantity: quantity,
-    min_quantity: min_quantity,
-    location,
-  });
+  const formData = new FormData();
+  formData.append("id", id.toString());
+  formData.append("quantity", quantity.toString());
+  formData.append("min_quantity", min_quantity.toString());
+  formData.append("location", location);
+
+  try {
+    const response = await axios.post(`${API_URL}/update`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update supply:", error);
+    throw error;
+  }
 };
 
 const deleteSupply = async (id: number) => {
@@ -65,7 +58,6 @@ const clearTable = async () => {
 const InventoryService = {
   getSupplies,
   addSupply,
-  updateItemDetails,
   updateSupply,
   deleteSupply,
   clearTable,
