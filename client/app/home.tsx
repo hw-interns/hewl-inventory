@@ -14,6 +14,10 @@ const Home = () => {
   const [inventoryItems, setInventoryItems] = useState<ItemProps[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editItem, setEditItem] = useState<ItemProps>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState("alphabetical");
+
+  let sortedItems = [...inventoryItems];
 
   useEffect(() => {
     const loadSupplies = async () => {
@@ -54,6 +58,18 @@ const Home = () => {
     setIsModalOpen(true);
   };
 
+  const filteredItems = inventoryItems.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  let sortedAndFilteredItems = [...filteredItems];
+
+  if (filter === "alphabetical") {
+    sortedAndFilteredItems.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (filter === "location") {
+    sortedAndFilteredItems.sort((a, b) => a.location.localeCompare(b.location));
+  }
+
   return (
     <>
       <header className="bg-gray-50 shadow-md">
@@ -89,18 +105,31 @@ const Home = () => {
           Add Item
         </button>
       </div>
+      <div className="flex justify-center my-4">
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="border p-2 rounded-md"
+        >
+          <option value="alphabetical">Alphabetical</option>
+          <option value="location">Location</option>
+        </select>
+      </div>
+      <div className="flex justify-center my-6">
+        <input
+          className="border p-4 w-1/2 rounded-md shadow-sm focus:ring focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="Search by name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       <Modal show={isModalOpen} onClose={handleCloseModal}>
         {editItem ? (
           <EditItemForm
             item={editItem}
-            onClose={() => {
-              setEditItem(undefined);
-              handleCloseModal();
-            }}
-            onItemUpdated={() => {
-              setEditItem(undefined);
-              handleItemAdded();
-            }}
+            onClose={handleCloseModal}
+            onItemUpdated={handleItemAdded}
           />
         ) : (
           <InventoryForm
@@ -109,13 +138,10 @@ const Home = () => {
           />
         )}
       </Modal>
-      ;
-      <div className="flex justify-center my-6">
-        <input className="border p-4 w-1/2" placeholder="Search" />
-      </div>
+
       <div className="container mx-auto px-4 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {inventoryItems.map((item) => (
+          {sortedAndFilteredItems.map((item) => (
             <InventoryItem
               key={item.id}
               item={item}
