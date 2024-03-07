@@ -1,7 +1,6 @@
 import axios from "axios";
-import process from "process";
 
-const API_URL = "https://hewl-inventory-tracker-5f0d7eb70170.herokuapp.com/api";
+const API_URL = process.env.API_URL;
 
 export const fetchSupplies = async () => {
   try {
@@ -11,6 +10,10 @@ export const fetchSupplies = async () => {
     console.error("Error fetching supplies:", error);
     throw error;
   }
+};
+
+const testAPI = async () => {
+  return axios.get(`${API_URL}/test`);
 };
 
 const getSupplies = async () => {
@@ -47,6 +50,7 @@ const InventoryService = {
   updateSupply,
   deleteSupply,
   clearTable,
+  testAPI,
 };
 
 export default InventoryService;
