@@ -13,6 +13,7 @@ import Login from "@/components/Login";
 
 const Home = () => {
   const [inventoryItems, setInventoryItems] = useState<ItemProps[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editItem, setEditItem] = useState<ItemProps>();
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,15 +21,16 @@ const Home = () => {
   const { data: session } = useSession();
   const allowedDomains = ["ucsb.edu", "sa.ucsb.edu", "umail.ucsb.edu"];
 
-  let sortedItems = [...inventoryItems];
-
   useEffect(() => {
     const loadSupplies = async () => {
       try {
+        setIsLoading(true);
         const supplies = await fetchSupplies();
         setInventoryItems(supplies);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -142,22 +144,28 @@ const Home = () => {
         )}
       </Modal>
 
-      <div className="container mx-auto px-4 mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {sortedAndFilteredItems.map((item) => {
-            const userDomain = session?.user?.email?.split("@")[1] ?? "";
-            const canEdit = allowedDomains.includes(userDomain);
-            return (
-              <InventoryItem
-                key={item.id}
-                item={item}
-                onEdit={() => handleEditItem(item)}
-                canEdit={canEdit}
-              />
-            );
-          })}
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-r-2 border-green-500 border-opacity-50"></div>
         </div>
-      </div>
+      ) : (
+        <div className="container mx-auto px-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {sortedAndFilteredItems.map((item) => {
+              const userDomain = session?.user?.email?.split("@")[1] ?? "";
+              const canEdit = allowedDomains.includes(userDomain);
+              return (
+                <InventoryItem
+                  key={item.id}
+                  item={item}
+                  onEdit={() => handleEditItem(item)}
+                  canEdit={canEdit}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
     </>
   );
 };
