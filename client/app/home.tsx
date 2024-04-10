@@ -180,6 +180,7 @@ const Home = () => {
             item={editItem}
             onClose={handleCloseModal}
             onItemUpdated={handleItemAdded}
+            allTags={allTags}
           />
         ) : (
           <InventoryForm

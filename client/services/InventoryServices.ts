@@ -36,13 +36,15 @@ const updateSupply = async (
   id: number,
   quantity: number,
   min_quantity: number,
-  location: string
+  location: string,
+  tags: string
 ) => {
   const formData = new FormData();
   formData.append("id", id.toString());
   formData.append("quantity", quantity.toString());
   formData.append("min_quantity", min_quantity.toString());
   formData.append("location", location);
+  formData.append("tags", tags);
 
   try {
     const response = await axios.post(`${API_URL}/update`, formData, {

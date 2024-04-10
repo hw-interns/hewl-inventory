@@ -251,7 +251,7 @@ def update():
     new_quantity = request.form.get('quantity')
     new_min_quantity = request.form.get('min_quantity')
     new_location = request.form.get('location')
-    
+    tags = request.form.get('tags')
 
     supply = OfficeSupply.query.get(id)
     if not supply:
@@ -260,6 +260,8 @@ def update():
     supply.quantity = new_quantity
     supply.min_quantity = new_min_quantity
     supply.location = new_location
+    if tags is not None:
+      supply.tags = tags
 
     user = request.form.get('user', 'Unknown')
     new_log = ChangeLog(user=user, action=f"Updated details of {supply.name}")

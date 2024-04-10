@@ -6,14 +6,20 @@ const EditItemForm = ({
   item,
   onClose,
   onItemUpdated,
+  allTags,
 }: {
   item: ItemProps;
   onClose: () => void;
   onItemUpdated: () => void;
+  allTags: string[];
 }) => {
   const [quantity, setQuantity] = useState(item.quantity);
   const [minQuantity, setMinQuantity] = useState(item.min_quantity);
   const [location, setLocation] = useState(item.location);
+  const [tags, setTags] = useState(item.tags);
+  const initialTagsArray = item.tags ? item.tags.split(";") : [];
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialTagsArray);
+  const [newTag, setNewTag] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,18 +29,29 @@ const EditItemForm = ({
         Number(item.id),
         quantity,
         minQuantity,
-        location
+        location,
+        tags
       );
-      console.log("Item updated");
-      console.log("Quantity:", quantity);
-      console.log("Min Quantity:", minQuantity);
-      console.log("Location:", location);
-      console.log("Item ID:", item.id);
       onClose();
       onItemUpdated();
     } catch (error) {
       console.error("Error updating item:", error);
     }
+  };
+
+  const toggleTagSelection = (tag: string) => {
+    setSelectedTags((prevSelectedTags) =>
+      prevSelectedTags.includes(tag)
+        ? prevSelectedTags.filter((t) => t !== tag)
+        : [...prevSelectedTags, tag]
+    );
+  };
+
+  const addNewTag = () => {
+    if (newTag && !selectedTags.includes(newTag)) {
+      setSelectedTags([...selectedTags, newTag]);
+    }
+    setNewTag("");
   };
 
   return (
@@ -90,6 +107,45 @@ const EditItemForm = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           />
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          {initialTagsArray.map((tag, index) => (
+            <span
+              key={index}
+              onClick={() => toggleTagSelection(tag)}
+              className={`cursor-pointer px-2 py-1 rounded-full text-xs font-medium ${
+                selectedTags.includes(tag)
+                  ? "bg-indigo-600 text-white"
+                  : "bg-gray-200 text-gray-800"
+              }`}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <div>
+          <label
+            htmlFor="newTag"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Add New Tag:
+          </label>
+          <input
+            id="newTag"
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+          <button
+            type="button"
+            onClick={addNewTag}
+            className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Add Tag
+          </button>
         </div>
 
         <button
