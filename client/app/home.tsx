@@ -7,6 +7,7 @@ import InventoryForm from "@/components/InventoryForm";
 import EditItemForm from "@/components/UpdateInventoryForm";
 import { fetchSupplies } from "@/services/InventoryServices";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import ItemProps from "@/data/item-props";
 import Login from "@/components/Login";
 
@@ -16,6 +17,8 @@ const Home = () => {
   const [editItem, setEditItem] = useState<ItemProps>();
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("alphabetical");
+  const { data: session } = useSession();
+  const allowedDomains = ["ucsb.edu", "sa.ucsb.edu", "umail.ucsb.edu"];
 
   let sortedItems = [...inventoryItems];
 
@@ -141,13 +144,18 @@ const Home = () => {
 
       <div className="container mx-auto px-4 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {sortedAndFilteredItems.map((item) => (
-            <InventoryItem
-              key={item.id}
-              item={item}
-              onEdit={() => handleEditItem(item)}
-            />
-          ))}
+          {sortedAndFilteredItems.map((item) => {
+            const userDomain = session?.user?.email?.split("@")[1] ?? "";
+            const canEdit = allowedDomains.includes(userDomain);
+            return (
+              <InventoryItem
+                key={item.id}
+                item={item}
+                onEdit={() => handleEditItem(item)}
+                canEdit={canEdit}
+              />
+            );
+          })}
         </div>
       </div>
     </>
