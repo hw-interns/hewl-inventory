@@ -1,11 +1,19 @@
 import axios from "axios";
+import ItemProps from "@/data/item-props";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetchSupplies = async () => {
   try {
     const response = await axios.get(`${API_URL}/supplies`);
-    return response.data;
+    const suppliesWithTags = response.data.map(
+      (item: ItemProps & { tags?: string[] }) => ({
+        ...item,
+        tags: item.tags || [],
+      })
+    );
+    console.log(suppliesWithTags);
+    return suppliesWithTags;
   } catch (error) {
     console.error("Error fetching supplies:", error);
     throw error;

@@ -50,6 +50,7 @@ class OfficeSupply(db.Model):
     department = db.Column(db.String(120), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     min_quantity = db.Column(db.Integer, nullable=False)
+    tags = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
         return f'<OfficeSupply {self.name}>'
@@ -135,7 +136,8 @@ def get_supplies():
             'location': supply.location,
             'department': supply.department,
             'quantity': supply.quantity,
-            'min_quantity': supply.min_quantity
+            'min_quantity': supply.min_quantity,
+            'tags': supply.tags 
         }
         for supply in supplies
     ]
@@ -188,13 +190,15 @@ def add():
     quantity = request.form.get('quantity', '')
     min_quantity = request.form.get('min_quantity', '')
     user = request.form.get('user', '')
+    tags = request.form.get('tags', '')
 
     new_supply = OfficeSupply(
         name=name,
         location=location,
         department=department,
         quantity=quantity,
-        min_quantity=min_quantity
+        min_quantity=min_quantity,
+        tags=tags
     )
     db.session.add(new_supply)
     db.session.flush()

@@ -18,6 +18,7 @@ const Home = () => {
   const [editItem, setEditItem] = useState<ItemProps>();
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("alphabetical");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { data: session } = useSession();
   const allowedDomains = ["ucsb.edu", "sa.ucsb.edu", "umail.ucsb.edu"];
 
@@ -63,9 +64,37 @@ const Home = () => {
     setIsModalOpen(true);
   };
 
-  const filteredItems = inventoryItems.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleTagClick = (tag: string) => {
+    setSelectedTags((currentTags) => {
+      const isTagSelected = currentTags.includes(tag);
+      if (isTagSelected) {
+        return currentTags.filter((t) => t !== tag);
+      } else {
+        return [...currentTags, tag];
+      }
+    });
+  };
+
+  const allTags = inventoryItems.reduce<string[]>((acc, item) => {
+    if (item.tags.length > 0) {
+      const tagList = item.tags.split(";");
+      tagList.forEach((tag: string) => {
+        if (!acc.includes(tag.trim())) {
+          acc.push(tag.trim());
+        }
+      });
+    }
+    return acc;
+  }, []);
+
+  const filteredItems = inventoryItems.filter((item) => {
+    const itemTags = typeof item.tags === "string" ? item.tags.split(";") : [];
+    return (
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedTags.length === 0 ||
+        selectedTags.every((tag) => itemTags.includes(tag)))
+    );
+  });
 
   let sortedAndFilteredItems = [...filteredItems];
 
@@ -73,6 +102,8 @@ const Home = () => {
     sortedAndFilteredItems.sort((a, b) => a.name.localeCompare(b.name));
   } else if (filter === "location") {
     sortedAndFilteredItems.sort((a, b) => a.location.localeCompare(b.location));
+  } else if (filter === "quantity") {
+    sortedAndFilteredItems.sort((a, b) => a.quantity - b.quantity);
   }
 
   return (
@@ -102,6 +133,14 @@ const Home = () => {
           </div>
         </div>
       </header>
+      <div className="flex justify-center my-6">
+        <input
+          className="border p-4 w-1/2 rounded-md shadow-sm focus:ring focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="Search by name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
       <div className="flex justify-center mt-12">
         <button
           onClick={handleAddItem}
@@ -111,22 +150,28 @@ const Home = () => {
         </button>
       </div>
       <div className="flex justify-center my-4">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border p-2 rounded-md"
-        >
-          <option value="alphabetical">Alphabetical</option>
-          <option value="location">Location</option>
-        </select>
+        <div className="border p-2 rounded-md">
+          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="alphabetical">Alphabetical</option>
+            <option value="quantity">Quantity</option>
+            <option value="location">Location</option>
+          </select>
+        </div>
       </div>
-      <div className="flex justify-center my-6">
-        <input
-          className="border p-4 w-1/2 rounded-md shadow-sm focus:ring focus:ring-indigo-500 focus:border-indigo-500"
-          placeholder="Search by name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      <div className="flex flex-wrap justify-center gap-2 p-4">
+        {allTags.map((tag, index) => (
+          <span
+            key={index}
+            onClick={() => handleTagClick(tag)}
+            className={`cursor-pointer ${
+              selectedTags.includes(tag)
+                ? "bg-blue-500 text-white"
+                : "bg-blue-100 text-blue-800"
+            } text-xs font-semibold mr-2 px-2.5 py-0.5 rounded`}
+          >
+            {tag} ×
+          </span>
+        ))}
       </div>
 
       <Modal show={isModalOpen} onClose={handleCloseModal}>
@@ -159,6 +204,7 @@ const Home = () => {
                   key={item.id}
                   item={item}
                   onEdit={() => handleEditItem(item)}
+                  onTagClick={handleTagClick}
                   canEdit={canEdit}
                 />
               );
