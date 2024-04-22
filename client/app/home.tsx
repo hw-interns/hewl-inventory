@@ -14,8 +14,9 @@ import Login from "@/components/Login";
 const Home = () => {
   const [inventoryItems, setInventoryItems] = useState<ItemProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editItem, setEditItem] = useState<ItemProps>();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editItem, setEditItem] = useState<ItemProps | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("alphabetical");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -48,20 +49,22 @@ const Home = () => {
   };
 
   const handleAddItem = () => {
-    setIsModalOpen(true);
+    setEditItem(null);
+    setIsAddModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleItemAdded = () => {
-    loadSupplies();
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
   };
 
   const handleEditItem = (item: ItemProps) => {
     setEditItem(item);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditItem(null);
   };
 
   const handleTagClick = (tag: string) => {
@@ -75,24 +78,28 @@ const Home = () => {
     });
   };
 
-  const allTags = inventoryItems.reduce<string[]>((acc, item) => {
-    if (item.tags.length > 0) {
-      const tagList = item.tags.split(";");
-      tagList.forEach((tag: string) => {
-        if (!acc.includes(tag.trim())) {
-          acc.push(tag.trim());
-        }
-      });
+  const normalizeTags = (tags: string | null | undefined): string[] => {
+    if (typeof tags === 'string') {
+      return tags.split(';').map(tag => tag.trim());
     }
+    return [];
+  };
+
+  const allTags = inventoryItems.reduce<string[]>((acc, item) => {
+    const tags = normalizeTags(item.tags);
+    tags.forEach(tag => {
+      if (!acc.includes(tag)) {
+        acc.push(tag);
+      }
+    });
     return acc;
   }, []);
-
-  const filteredItems = inventoryItems.filter((item) => {
-    const itemTags = typeof item.tags === "string" ? item.tags.split(";") : [];
+  
+  const filteredItems = inventoryItems.filter(item => {
+    const itemTags = normalizeTags(item.tags);
     return (
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedTags.length === 0 ||
-        selectedTags.every((tag) => itemTags.includes(tag)))
+      (selectedTags.length === 0 || selectedTags.every(tag => itemTags.includes(tag)))
     );
   });
 
@@ -173,23 +180,28 @@ const Home = () => {
           </span>
         ))}
       </div>
-
-      <Modal show={isModalOpen} onClose={handleCloseModal}>
-        {editItem ? (
+      <Modal show={isAddModalOpen} onClose={handleCloseAddModal}>
+        <InventoryForm
+          onClose={handleCloseAddModal}
+          onItemAdded={() => {
+            loadSupplies();
+            handleCloseAddModal();
+          }}
+        />
+      </Modal>
+      <Modal show={isEditModalOpen} onClose={handleCloseEditModal}>
+        {editItem && (
           <EditItemForm
             item={editItem}
-            onClose={handleCloseModal}
-            onItemUpdated={handleItemAdded}
-            allTags={allTags}
-          />
-        ) : (
-          <InventoryForm
-            onClose={handleCloseModal}
-            onItemAdded={handleItemAdded}
-          />
+            onClose={handleCloseEditModal}
+            onItemUpdated={() => {
+              loadSupplies();
+              handleCloseEditModal();
+            }}
+            allTags={inventoryItems.flatMap(item => normalizeTags(item.tags))}
+            />
         )}
       </Modal>
-
       {isLoading ? (
         <div className="flex justify-center items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-r-2 border-green-500 border-opacity-50"></div>
