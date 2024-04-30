@@ -104,12 +104,12 @@ const EditItemForm = ({
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="my-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           />
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* <div className="flex flex-wrap gap-2 mb-4">
           {initialTagsArray.map((tag, index) => (
             <span
               key={index}
@@ -123,9 +123,9 @@ const EditItemForm = ({
               {tag}
             </span>
           ))}
-        </div>
+        </div> */}
 
-        <div>
+        {/* <div>
           <label
             htmlFor="newTag"
             className="block text-sm font-medium text-gray-700"
@@ -146,7 +146,7 @@ const EditItemForm = ({
           >
             Add Tag
           </button>
-        </div>
+        </div> */}
 
         <button
           type="submit"

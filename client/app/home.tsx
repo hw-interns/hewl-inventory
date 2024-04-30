@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import InventoryItem from "@/components/InventoryItem";
 import Modal from "@/components/Modal";
 import InventoryForm from "@/components/InventoryForm";
@@ -79,27 +80,28 @@ const Home = () => {
   };
 
   const normalizeTags = (tags: string | null | undefined): string[] => {
-    if (typeof tags === 'string') {
-      return tags.split(';').map(tag => tag.trim());
+    if (typeof tags === "string") {
+      return tags.split(";").map((tag) => tag.trim());
     }
     return [];
   };
 
   const allTags = inventoryItems.reduce<string[]>((acc, item) => {
     const tags = normalizeTags(item.tags);
-    tags.forEach(tag => {
+    tags.forEach((tag) => {
       if (!acc.includes(tag)) {
         acc.push(tag);
       }
     });
     return acc;
   }, []);
-  
-  const filteredItems = inventoryItems.filter(item => {
+
+  const filteredItems = inventoryItems.filter((item) => {
     const itemTags = normalizeTags(item.tags);
     return (
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      (selectedTags.length === 0 || selectedTags.every(tag => itemTags.includes(tag)))
+      (selectedTags.length === 0 ||
+        selectedTags.every((tag) => itemTags.includes(tag)))
     );
   });
 
@@ -148,7 +150,16 @@ const Home = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      <div className="flex justify-center mt-12">
+
+      <div className="flex justify-center mt-8">
+        <Link href="/changelog">
+          <button className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Change Log
+          </button>
+        </Link>
+      </div>
+
+      <div className="flex justify-center mt-2">
         <button
           onClick={handleAddItem}
           className="bg-green-500 text-white py-2 px-4 rounded"
@@ -198,8 +209,8 @@ const Home = () => {
               loadSupplies();
               handleCloseEditModal();
             }}
-            allTags={inventoryItems.flatMap(item => normalizeTags(item.tags))}
-            />
+            allTags={inventoryItems.flatMap((item) => normalizeTags(item.tags))}
+          />
         )}
       </Modal>
       {isLoading ? (

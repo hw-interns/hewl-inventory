@@ -73,26 +73,6 @@ with app.app_context():
 def home():
     return redirect(url_for('flasgger.apidocs'))
 
-@app.route('/api/test', methods=['GET'])
-def get_data():
-    """
-    Test API Endpoint
-    ---
-    tags:
-      - Test
-    responses:
-      200:
-        description: Returns a success message
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              example: Flask API is online!
-    """
-    data = {'message': 'Flask API is online!'}
-    return jsonify(data)
-
 @app.route('/api/supplies', methods=['GET'])
 def get_supplies():
     """
@@ -220,22 +200,46 @@ def add():
 @app.route('/api/update', methods=['POST'])
 def update():
     """
-    Update a supply's quantity
+    Update a supply's details such as quantity, minimum quantity, location, and tags.
     ---
     tags:
       - Supplies
+    consumes:
+      - application/x-www-form-urlencoded
     parameters:
-      - in: formData
-        name: id
+      - name: id
+        in: formData
         type: integer
         required: true
-      - in: formData
-        name: quantity_change
+        description: The ID of the supply to update.
+      - name: quantity
+        in: formData
         type: integer
-        required: true
+        required: false
+        description: The new quantity of the supply.
+      - name: min_quantity
+        in: formData
+        type: integer
+        required: false
+        description: The new minimum quantity threshold for the supply.
+      - name: location
+        in: formData
+        type: string
+        required: false
+        description: The new storage location of the supply.
+      - name: tags
+        in: formData
+        type: string
+        required: false
+        description: Updated tags associated with the supply, delimited by commas or another separator.
+      - name: user
+        in: formData
+        type: string
+        required: false
+        description: The user making the update.
     responses:
       200:
-        description: Supply quantity updated
+        description: Supply details updated successfully.
         schema:
           type: object
           properties:
@@ -245,8 +249,20 @@ def update():
             new_quantity:
               type: integer
               example: 110
+            new_min_quantity:
+              type: integer
+              example: 20
+            new_location:
+              type: string
+              example: "Warehouse A"
+            tags:
+              type: string
+              example: "office, supply"
+      404:
+        description: Supply not found.
+      400:
+        description: Missing required ID field.
     """
-    print("Received form data:", request.form)
     id = request.form.get('id')
     new_quantity = request.form.get('quantity')
     new_min_quantity = request.form.get('min_quantity')
@@ -257,14 +273,24 @@ def update():
     if not supply:
         return jsonify({'error': 'Supply not found'}), 404
     
-    supply.quantity = new_quantity
-    supply.min_quantity = new_min_quantity
-    supply.location = new_location
+    old_quantity = supply.quantity
+    if new_quantity is not None:
+      supply.quantity = new_quantity
+    
+    if new_min_quantity is not None:
+      supply.min_quantity = new_min_quantity
+
+    if new_location is not None:
+      supply.location = new_location
     if tags is not None:
       supply.tags = tags
 
+    if new_quantity is not None:
+        if new_quantity < supply.min_quantity:
+            send_notification_email(supply.name, new_quantity, new_min_quantity)
+
     user = request.form.get('user', 'Unknown')
-    new_log = ChangeLog(user=user, action=f"Updated details of {supply.name}")
+    new_log = ChangeLog(user=user, action=f"Updated {supply.name} from {old_quantity} to {new_quantity}")
     db.session.add(new_log)
 
     db.session.commit()
@@ -342,8 +368,52 @@ def clear():
         response = jsonify({'error': 'Failed to clear table'})
         response.status_code = 500
         return response
+    
+@app.route('/api/changelog', methods=['GET'])
+def get_change_log():
+    """
+    Retrieve all entries from the change log.
+    ---
+    tags:
+      - Logs
+    responses:
+      200:
+        description: A list of all change log entries
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/ChangeLog'
+    definitions:
+      ChangeLog:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          user:
+            type: string
+            example: "admin"
+          action:
+            type: string
+            example: "added a new item: Pencils, Quantity: 100"
+          timestamp:
+            type: string
+            example: "2021-07-21T17:32:28Z"
+    """
+    change_logs = ChangeLog.query.order_by(ChangeLog.timestamp.desc()).all()
+    log_entries = [
+        {
+            'id': log.id,
+            'user': log.user,
+            'action': log.action,
+            'timestamp': log.timestamp.isoformat()
+        }
+        for log in change_logs
+    ]
+    return jsonify(log_entries)
 
 def send_notification_email(supply_name, current_quantity, min_quantity):
+    print('Sending email notification')
     subject = f"Inventory Alert: {supply_name}"
     recipients = [SENDGRID_EMAIL]
 

@@ -57,6 +57,16 @@ const updateSupply = async (
   }
 };
 
+export const fetchChangeLog = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/changelog`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching changelog:", error);
+    throw error;
+  }
+};
+
 const deleteSupply = async (id: number) => {
   return axios.post(`${API_URL}/delete`, { id });
 };
@@ -70,6 +80,7 @@ const InventoryService = {
   addSupply,
   updateSupply,
   deleteSupply,
+  fetchSupplies,
   clearTable,
   testAPI,
 };
