@@ -19,7 +19,12 @@ const EditItemForm = ({
   const [minQuantity, setMinQuantity] = useState(item.min_quantity);
   const [location, setLocation] = useState(item.location);
   const [tags, setTags] = useState(item.tags);
-  const initialTagsArray = item.tags ? item.tags.split(";") : [];
+  const initialTagsArray =
+    typeof item.tags === "string"
+      ? item.tags.split(";")
+      : Array.isArray(item.tags)
+      ? item.tags
+      : [];
   const [selectedTags, setSelectedTags] = useState<string[]>(initialTagsArray);
   const [newTag, setNewTag] = useState("");
 
