@@ -57,9 +57,9 @@ class OfficeSupply(db.Model):
 
 class ChangeLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(80), nullable=False)
+    user = db.Column(db.String(255), nullable=False)
     action = db.Column(db.String(120), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
 
     def __repr__(self):
         return f'<ChangeLog {self.user} {self.action} {self.timestamp}>'
@@ -169,7 +169,7 @@ def add():
     department = request.form.get('department', '')
     quantity = request.form.get('quantity', '')
     min_quantity = request.form.get('min_quantity', '')
-    user = request.form.get('user', '')
+    user = request.form.get('user', 'Unknown')
     tags = request.form.get('tags', '')
 
     new_supply = OfficeSupply(
@@ -268,6 +268,7 @@ def update():
     new_min_quantity = request.form.get('min_quantity')
     new_location = request.form.get('location')
     tags = request.form.get('tags')
+    user = request.form.get('user', 'Unknown')
 
     supply = OfficeSupply.query.get(id)
     if not supply:
@@ -275,9 +276,11 @@ def update():
     
     old_quantity = supply.quantity
     if new_quantity is not None:
+      new_quantity = int(new_quantity)
       supply.quantity = new_quantity
     
     if new_min_quantity is not None:
+      new_min_quantity = int(new_min_quantity)
       supply.min_quantity = new_min_quantity
 
     if new_location is not None:
@@ -289,8 +292,7 @@ def update():
         if new_quantity < supply.min_quantity:
             send_notification_email(supply.name, new_quantity, new_min_quantity)
 
-    user = request.form.get('user', 'Unknown')
-    new_log = ChangeLog(user=user, action=f"Updated {supply.name} from {old_quantity} to {new_quantity}")
+    new_log = ChangeLog(user=user, action=f"updated {supply.name} from {old_quantity} to {new_quantity}")
     db.session.add(new_log)
 
     db.session.commit()
@@ -299,7 +301,8 @@ def update():
         'id': id,
         'new_quantity': supply.quantity,
         'new_min_quantity': supply.min_quantity,
-        'new_location': supply.location
+        'new_location': supply.location,
+        'tags': supply.tags
     })
 
 
@@ -325,10 +328,13 @@ def delete():
               type: string
               example: "Data removed successfully"
     """
-    id = request.form['id']
+    id = request.form.get('id')
+    user = request.form.get('user', 'Unknown')
     supply = OfficeSupply.query.get(id)
     
     db.session.delete(supply)
+    new_log = ChangeLog(user=user, action=f"deleted item: {supply.name}")
+    db.session.add(new_log)
     db.session.commit()
     
     response = jsonify({'message': 'Data removed successfully'})
@@ -412,9 +418,43 @@ def get_change_log():
     ]
     return jsonify(log_entries)
 
+
+@app.route('/api/clear_changelogs', methods=['DELETE'])
+def clear_change_logs():
+    """
+    Clear all entries from the change log.
+    ---
+    tags:
+      - Logs
+    responses:
+      200:
+        description: All change log entries cleared successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "All change logs cleared successfully"
+      500:
+        description: Failed to clear change logs due to an internal error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Internal server error"
+    """
+    try:
+        num_deleted = db.session.query(ChangeLog).delete()
+        db.session.commit()
+        return jsonify({'message': f'All change logs cleared successfully, {num_deleted} entries deleted'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to clear change logs: {str(e)}'}), 500
+
 def send_notification_email(supply_name, current_quantity, min_quantity):
     print('Sending email notification')
-    subject = f"Inventory Alert: {supply_name}"
+    subject = f"HEWL Inventory Update: {supply_name}"
     recipients = [SENDGRID_EMAIL]
 
     body = f"The quantity of {supply_name} has dropped below the minimum. Current Quantity: {current_quantity}, Minimum Quantity: {min_quantity}"

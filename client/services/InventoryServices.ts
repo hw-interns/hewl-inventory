@@ -37,7 +37,8 @@ const updateSupply = async (
   quantity: number,
   min_quantity: number,
   location: string,
-  tags: string
+  tags: string,
+  userName: string
 ) => {
   const formData = new FormData();
   formData.append("id", id.toString());
@@ -45,6 +46,7 @@ const updateSupply = async (
   formData.append("min_quantity", min_quantity.toString());
   formData.append("location", location);
   formData.append("tags", tags);
+  formData.append("user", userName);
 
   try {
     const response = await axios.post(`${API_URL}/update`, formData, {
@@ -60,6 +62,7 @@ const updateSupply = async (
 export const fetchChangeLog = async () => {
   try {
     const response = await axios.get(`${API_URL}/changelog`);
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching changelog:", error);
@@ -67,7 +70,7 @@ export const fetchChangeLog = async () => {
   }
 };
 
-const deleteSupply = async (id: number) => {
+const deleteSupply = async (id: number, userName: String) => {
   return axios.post(`${API_URL}/delete`, { id });
 };
 

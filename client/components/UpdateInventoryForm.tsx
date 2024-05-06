@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import InventoryService from "@/services/InventoryServices";
 import ItemProps from "@/data/item-props";
 
@@ -13,6 +14,7 @@ const EditItemForm = ({
   onItemUpdated: () => void;
   allTags: string[];
 }) => {
+  const { data: session } = useSession();
   const [quantity, setQuantity] = useState(item.quantity);
   const [minQuantity, setMinQuantity] = useState(item.min_quantity);
   const [location, setLocation] = useState(item.location);
@@ -24,13 +26,23 @@ const EditItemForm = ({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (quantity < minQuantity) {
+      const confirmUpdate = window.confirm(
+        `Updating the quantity to ${quantity} will fall below the minimum quantity of ${minQuantity}. Do you want to proceed and trigger an email notification?`
+      );
+      if (!confirmUpdate) {
+        return;
+      }
+    }
+
     try {
       await InventoryService.updateSupply(
         Number(item.id),
         quantity,
         minQuantity,
         location,
-        tags
+        tags,
+        session?.user?.name as string
       );
       onClose();
       onItemUpdated();
@@ -108,45 +120,6 @@ const EditItemForm = ({
             required
           />
         </div>
-
-        {/* <div className="flex flex-wrap gap-2 mb-4">
-          {initialTagsArray.map((tag, index) => (
-            <span
-              key={index}
-              onClick={() => toggleTagSelection(tag)}
-              className={`cursor-pointer px-2 py-1 rounded-full text-xs font-medium ${
-                selectedTags.includes(tag)
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-200 text-gray-800"
-              }`}
-            >
-              {tag}
-            </span>
-          ))}
-        </div> */}
-
-        {/* <div>
-          <label
-            htmlFor="newTag"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Add New Tag:
-          </label>
-          <input
-            id="newTag"
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-          <button
-            type="button"
-            onClick={addNewTag}
-            className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Add Tag
-          </button>
-        </div> */}
 
         <button
           type="submit"
