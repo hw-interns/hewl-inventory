@@ -1,31 +1,39 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import InventoryItem from "@/components/InventoryItem";
 import Modal from "@/components/Modal";
 import InventoryForm from "@/components/InventoryForm";
 import EditItemForm from "@/components/UpdateInventoryForm";
 import { fetchSupplies } from "@/services/InventoryServices";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import ItemProps from "@/data/item-props";
 import Login from "@/components/Login";
 
 const Home = () => {
   const [inventoryItems, setInventoryItems] = useState<ItemProps[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editItem, setEditItem] = useState<ItemProps>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editItem, setEditItem] = useState<ItemProps | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("alphabetical");
-
-  let sortedItems = [...inventoryItems];
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { data: session } = useSession();
+  const allowedDomains = ["ucsb.edu", "sa.ucsb.edu", "umail.ucsb.edu"];
 
   useEffect(() => {
     const loadSupplies = async () => {
       try {
+        setIsLoading(true);
         const supplies = await fetchSupplies();
         setInventoryItems(supplies);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -42,25 +50,60 @@ const Home = () => {
   };
 
   const handleAddItem = () => {
-    setIsModalOpen(true);
+    setEditItem(null);
+    setIsAddModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleItemAdded = () => {
-    loadSupplies();
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
   };
 
   const handleEditItem = (item: ItemProps) => {
     setEditItem(item);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
-  const filteredItems = inventoryItems.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditItem(null);
+  };
+
+  const handleTagClick = (tag: string) => {
+    setSelectedTags((currentTags) => {
+      const isTagSelected = currentTags.includes(tag);
+      if (isTagSelected) {
+        return currentTags.filter((t) => t !== tag);
+      } else {
+        return [...currentTags, tag];
+      }
+    });
+  };
+
+  const normalizeTags = (tags: string | null | undefined): string[] => {
+    if (typeof tags === "string") {
+      return tags.split(";").map((tag) => tag.trim());
+    }
+    return [];
+  };
+
+  const allTags = inventoryItems.reduce<string[]>((acc, item) => {
+    const tags = normalizeTags(item.tags);
+    tags.forEach((tag) => {
+      if (!acc.includes(tag)) {
+        acc.push(tag);
+      }
+    });
+    return acc;
+  }, []);
+
+  const filteredItems = inventoryItems.filter((item) => {
+    const itemTags = normalizeTags(item.tags);
+    return (
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedTags.length === 0 ||
+        selectedTags.every((tag) => itemTags.includes(tag)))
+    );
+  });
 
   let sortedAndFilteredItems = [...filteredItems];
 
@@ -68,6 +111,8 @@ const Home = () => {
     sortedAndFilteredItems.sort((a, b) => a.name.localeCompare(b.name));
   } else if (filter === "location") {
     sortedAndFilteredItems.sort((a, b) => a.location.localeCompare(b.location));
+  } else if (filter === "quantity") {
+    sortedAndFilteredItems.sort((a, b) => a.quantity - b.quantity);
   }
 
   return (
@@ -97,24 +142,6 @@ const Home = () => {
           </div>
         </div>
       </header>
-      <div className="flex justify-center mt-12">
-        <button
-          onClick={handleAddItem}
-          className="bg-green-500 text-white py-2 px-4 rounded"
-        >
-          Add Item
-        </button>
-      </div>
-      <div className="flex justify-center my-4">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border p-2 rounded-md"
-        >
-          <option value="alphabetical">Alphabetical</option>
-          <option value="location">Location</option>
-        </select>
-      </div>
       <div className="flex justify-center my-6">
         <input
           className="border p-4 w-1/2 rounded-md shadow-sm focus:ring focus:ring-indigo-500 focus:border-indigo-500"
@@ -124,32 +151,91 @@ const Home = () => {
         />
       </div>
 
-      <Modal show={isModalOpen} onClose={handleCloseModal}>
-        {editItem ? (
+      <div className="flex justify-center mt-8">
+        <Link href="/changelog">
+          <button className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Change Log
+          </button>
+        </Link>
+      </div>
+
+      <div className="flex justify-center mt-2">
+        <button
+          onClick={handleAddItem}
+          className="bg-green-500 text-white py-2 px-4 rounded"
+        >
+          Add Item
+        </button>
+      </div>
+      <div className="flex justify-center my-4">
+        <div className="border p-2 rounded-md">
+          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="alphabetical">Alphabetical</option>
+            <option value="quantity">Quantity</option>
+            <option value="location">Location</option>
+          </select>
+        </div>
+      </div>
+      <div className="flex flex-wrap justify-center gap-2 p-4">
+        {allTags.map((tag, index) => (
+          <span
+            key={index}
+            onClick={() => handleTagClick(tag)}
+            className={`cursor-pointer ${
+              selectedTags.includes(tag)
+                ? "bg-blue-500 text-white"
+                : "bg-blue-100 text-blue-800"
+            } text-xs font-semibold mr-2 px-2.5 py-0.5 rounded`}
+          >
+            {tag} ×
+          </span>
+        ))}
+      </div>
+      <Modal show={isAddModalOpen} onClose={handleCloseAddModal}>
+        <InventoryForm
+          onClose={handleCloseAddModal}
+          onItemAdded={() => {
+            loadSupplies();
+            handleCloseAddModal();
+          }}
+        />
+      </Modal>
+      <Modal show={isEditModalOpen} onClose={handleCloseEditModal}>
+        {editItem && (
           <EditItemForm
             item={editItem}
-            onClose={handleCloseModal}
-            onItemUpdated={handleItemAdded}
-          />
-        ) : (
-          <InventoryForm
-            onClose={handleCloseModal}
-            onItemAdded={handleItemAdded}
+            onClose={handleCloseEditModal}
+            onItemUpdated={() => {
+              loadSupplies();
+              handleCloseEditModal();
+            }}
+            allTags={inventoryItems.flatMap((item) => normalizeTags(item.tags))}
           />
         )}
       </Modal>
-
-      <div className="container mx-auto px-4 mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {sortedAndFilteredItems.map((item) => (
-            <InventoryItem
-              key={item.id}
-              item={item}
-              onEdit={() => handleEditItem(item)}
-            />
-          ))}
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-r-2 border-green-500 border-opacity-50"></div>
         </div>
-      </div>
+      ) : (
+        <div className="container mx-auto px-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {sortedAndFilteredItems.map((item) => {
+              const userDomain = session?.user?.email?.split("@")[1] ?? "";
+              const canEdit = allowedDomains.includes(userDomain);
+              return (
+                <InventoryItem
+                  key={item.id}
+                  item={item}
+                  onEdit={() => handleEditItem(item)}
+                  onTagClick={handleTagClick}
+                  canEdit={canEdit}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
     </>
   );
 };

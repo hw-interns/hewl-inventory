@@ -50,15 +50,16 @@ class OfficeSupply(db.Model):
     department = db.Column(db.String(120), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     min_quantity = db.Column(db.Integer, nullable=False)
+    tags = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
         return f'<OfficeSupply {self.name}>'
 
 class ChangeLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(80), nullable=False)
+    user = db.Column(db.String(255), nullable=False)
     action = db.Column(db.String(120), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
 
     def __repr__(self):
         return f'<ChangeLog {self.user} {self.action} {self.timestamp}>'
@@ -71,26 +72,6 @@ with app.app_context():
 @app.route('/')
 def home():
     return redirect(url_for('flasgger.apidocs'))
-
-@app.route('/api/test', methods=['GET'])
-def get_data():
-    """
-    Test API Endpoint
-    ---
-    tags:
-      - Test
-    responses:
-      200:
-        description: Returns a success message
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              example: Flask API is online!
-    """
-    data = {'message': 'Flask API is online!'}
-    return jsonify(data)
 
 @app.route('/api/supplies', methods=['GET'])
 def get_supplies():
@@ -135,7 +116,8 @@ def get_supplies():
             'location': supply.location,
             'department': supply.department,
             'quantity': supply.quantity,
-            'min_quantity': supply.min_quantity
+            'min_quantity': supply.min_quantity,
+            'tags': supply.tags 
         }
         for supply in supplies
     ]
@@ -187,14 +169,16 @@ def add():
     department = request.form.get('department', '')
     quantity = request.form.get('quantity', '')
     min_quantity = request.form.get('min_quantity', '')
-    user = request.form.get('user', '')
+    user = request.form.get('user', 'Unknown')
+    tags = request.form.get('tags', '')
 
     new_supply = OfficeSupply(
         name=name,
         location=location,
         department=department,
         quantity=quantity,
-        min_quantity=min_quantity
+        min_quantity=min_quantity,
+        tags=tags
     )
     db.session.add(new_supply)
     db.session.flush()
@@ -216,22 +200,46 @@ def add():
 @app.route('/api/update', methods=['POST'])
 def update():
     """
-    Update a supply's quantity
+    Update a supply's details such as quantity, minimum quantity, location, and tags.
     ---
     tags:
       - Supplies
+    consumes:
+      - application/x-www-form-urlencoded
     parameters:
-      - in: formData
-        name: id
+      - name: id
+        in: formData
         type: integer
         required: true
-      - in: formData
-        name: quantity_change
+        description: The ID of the supply to update.
+      - name: quantity
+        in: formData
         type: integer
-        required: true
+        required: false
+        description: The new quantity of the supply.
+      - name: min_quantity
+        in: formData
+        type: integer
+        required: false
+        description: The new minimum quantity threshold for the supply.
+      - name: location
+        in: formData
+        type: string
+        required: false
+        description: The new storage location of the supply.
+      - name: tags
+        in: formData
+        type: string
+        required: false
+        description: Updated tags associated with the supply, delimited by commas or another separator.
+      - name: user
+        in: formData
+        type: string
+        required: false
+        description: The user making the update.
     responses:
       200:
-        description: Supply quantity updated
+        description: Supply details updated successfully.
         schema:
           type: object
           properties:
@@ -241,24 +249,50 @@ def update():
             new_quantity:
               type: integer
               example: 110
+            new_min_quantity:
+              type: integer
+              example: 20
+            new_location:
+              type: string
+              example: "Warehouse A"
+            tags:
+              type: string
+              example: "office, supply"
+      404:
+        description: Supply not found.
+      400:
+        description: Missing required ID field.
     """
-    print("Received form data:", request.form)
     id = request.form.get('id')
     new_quantity = request.form.get('quantity')
     new_min_quantity = request.form.get('min_quantity')
     new_location = request.form.get('location')
-    
+    tags = request.form.get('tags')
+    user = request.form.get('user', 'Unknown')
 
     supply = OfficeSupply.query.get(id)
     if not supply:
         return jsonify({'error': 'Supply not found'}), 404
     
-    supply.quantity = new_quantity
-    supply.min_quantity = new_min_quantity
-    supply.location = new_location
+    old_quantity = supply.quantity
+    if new_quantity is not None:
+      new_quantity = int(new_quantity)
+      supply.quantity = new_quantity
+    
+    if new_min_quantity is not None:
+      new_min_quantity = int(new_min_quantity)
+      supply.min_quantity = new_min_quantity
 
-    user = request.form.get('user', 'Unknown')
-    new_log = ChangeLog(user=user, action=f"Updated details of {supply.name}")
+    if new_location is not None:
+      supply.location = new_location
+    if tags is not None:
+      supply.tags = tags
+
+    if new_quantity is not None:
+        if new_quantity < supply.min_quantity:
+            send_notification_email(supply.name, new_quantity, new_min_quantity)
+
+    new_log = ChangeLog(user=user, action=f"updated {supply.name} from {old_quantity} to {new_quantity}")
     db.session.add(new_log)
 
     db.session.commit()
@@ -267,7 +301,8 @@ def update():
         'id': id,
         'new_quantity': supply.quantity,
         'new_min_quantity': supply.min_quantity,
-        'new_location': supply.location
+        'new_location': supply.location,
+        'tags': supply.tags
     })
 
 
@@ -293,10 +328,13 @@ def delete():
               type: string
               example: "Data removed successfully"
     """
-    id = request.form['id']
+    id = request.form.get('id')
+    user = request.form.get('user', 'Unknown')
     supply = OfficeSupply.query.get(id)
     
     db.session.delete(supply)
+    new_log = ChangeLog(user=user, action=f"deleted item: {supply.name}")
+    db.session.add(new_log)
     db.session.commit()
     
     response = jsonify({'message': 'Data removed successfully'})
@@ -336,9 +374,87 @@ def clear():
         response = jsonify({'error': 'Failed to clear table'})
         response.status_code = 500
         return response
+    
+@app.route('/api/changelog', methods=['GET'])
+def get_change_log():
+    """
+    Retrieve all entries from the change log.
+    ---
+    tags:
+      - Logs
+    responses:
+      200:
+        description: A list of all change log entries
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/ChangeLog'
+    definitions:
+      ChangeLog:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          user:
+            type: string
+            example: "admin"
+          action:
+            type: string
+            example: "added a new item: Pencils, Quantity: 100"
+          timestamp:
+            type: string
+            example: "2021-07-21T17:32:28Z"
+    """
+    change_logs = ChangeLog.query.order_by(ChangeLog.timestamp.desc()).all()
+    log_entries = [
+        {
+            'id': log.id,
+            'user': log.user,
+            'action': log.action,
+            'timestamp': log.timestamp.isoformat()
+        }
+        for log in change_logs
+    ]
+    return jsonify(log_entries)
+
+
+@app.route('/api/clear_changelogs', methods=['DELETE'])
+def clear_change_logs():
+    """
+    Clear all entries from the change log.
+    ---
+    tags:
+      - Logs
+    responses:
+      200:
+        description: All change log entries cleared successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "All change logs cleared successfully"
+      500:
+        description: Failed to clear change logs due to an internal error
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Internal server error"
+    """
+    try:
+        num_deleted = db.session.query(ChangeLog).delete()
+        db.session.commit()
+        return jsonify({'message': f'All change logs cleared successfully, {num_deleted} entries deleted'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to clear change logs: {str(e)}'}), 500
 
 def send_notification_email(supply_name, current_quantity, min_quantity):
-    subject = f"Inventory Alert: {supply_name}"
+    print('Sending email notification')
+    subject = f"HEWL Inventory Update: {supply_name}"
     recipients = [SENDGRID_EMAIL]
 
     body = f"The quantity of {supply_name} has dropped below the minimum. Current Quantity: {current_quantity}, Minimum Quantity: {min_quantity}"

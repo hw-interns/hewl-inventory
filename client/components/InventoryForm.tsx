@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import InventoryService from "@/services/InventoryServices";
 
 interface InventoryFormProps {
@@ -8,6 +9,7 @@ interface InventoryFormProps {
 }
 
 const InventoryForm = ({ onClose, onItemAdded }: InventoryFormProps) => {
+  const { data: session } = useSession();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [department, setDepartment] = useState("");
@@ -23,6 +25,7 @@ const InventoryForm = ({ onClose, onItemAdded }: InventoryFormProps) => {
     formData.append("department", department);
     formData.append("quantity", quantity.toString());
     formData.append("min_quantity", minQuantity.toString());
+    formData.append("user", session?.user?.name as string);
 
     try {
       const response = await InventoryService.addSupply(formData);

@@ -1,62 +1,55 @@
-Name,Location,Min,Max
-Dish soap,Kitchen,,
-Small Trash Bags,Kitchen,10,100
-Big Trash Bags,Kitchen,10,100
-Hot cup lids,Tea,50,1000
-Napkins,Tea,100,400
-Small plates,Tea,100,500
-Honey,Tea,,1
-Sugar,Tea,,
-Sugar Alternative-Stevia,Tea,,
-Sugar Alternative - Splenda,Tea,,
-Paper bowls,Tea,,
-Knives,Tea,,
-Spoons,Tea,,
-Forks,Tea,,
-Big plates,Tea,,
-Sani Wipes (food grade),Tea,,6
-Sani Wipes (food grade),Tea,,12
-Decaf Tea-Mint,Tea 1,,200
-Decaf Tea-Camomile,Tea 1,,200
-Decaf Tea-Lemon Ginger,Tea 1,,200
-Decaf Tea-rotating,Tea 1,,200
-Caffeinated Tea-Earl Grey,Tea 1,,200
-Caffeinated Tea-English Breakfast,Tea 1,,200
-Caffeinated Tea-Green,Tea 1,,200
-Caffeinated Tea-Chai,Tea 1,,200
-Stir sticks,Tea 2,,
-Creamer,Tea 2,,180
-Hot cups,Tea,200,1000
-Paper towels,Tea,,
-Disinfecting Wipes (Clorox),WR,3,12
-Double sided tape,WR 1,,
-Glue sticks,WR 1,,
-"Blue tape (thin, 1"")",WR 2,2,6
-"Blue tape (wide, 2"")",WR 2,2,6
-Kleenex,WR 2,3,20
-Scotch tape,WR 3,2,5
-Small post it notes,WR 3,3,12
-Medium post it notes,WR 3,3,18
-Large post it notes,WR 3,3,12
-Name badges,WR 3,50,500
-Pens,WR 4,6,24
-Sharpies,WR 4,6,12
-Small paper clips,WR 4,1,
-Big paper clips,WR 4,1,
-Staples,WR 4,1,
-Small binder clips,WR 4,1,
-Medium binder clips,WR 4,1,
-Large binder clips,WR 4,1,
-Highlighters,WR 5,2,12
-Dry erase markers,WR 5,2,4
-Pencils,WR 5,6,24
-Legal pads,WR 7,3,12
-File folders,WR 7,1,1
-Hanging file folders,WR 7,1,1
-Envelops for mailing Marketing Calendars/posters,,,
-Printer Paper ,, ,
-Requests send in desk duties slack (date and initials),,,
-Thumb tacks ,,,
-Loose leaf rings,,,
-Batteries ,,,
-Liquid glue,,,
+Name,Location,Min,Max,Tags
+Dish soap,Kitchen,,,"Kitchen"
+Small Trash Bags,Kitchen,10,100,"Kitchen"
+Big Trash Bags,Kitchen,10,100,"Kitchen"
+Hot cup lids,Tea,50,1000,"Tea"
+Napkins,Tea,100,400,"Tea"
+Small plates,Tea,100,500,"Tea"
+Honey,Tea,,1,"Tea"
+Sugar,Tea,,,"Tea"
+Sugar Alternative-Stevia,Tea,,,"Tea"
+Sugar Alternative-Splenda,Tea,,,"Tea"
+Paper bowls,Tea,,,"Tea"
+Knives,Tea,,,"Tea"
+Spoons,Tea,,,"Tea"
+Forks,Tea,,,"Tea"
+Big plates,Tea,,,"Tea"
+Sani Wipes (food grade),Tea,,6,"Tea"
+Sani Wipes (food grade),Tea,,12,"Tea"
+Decaf Tea-Mint,Tea 1,,200,"Tea"
+Decaf Tea-Camomile,Tea 1,,200,"Tea"
+Decaf Tea-Lemon Ginger,Tea 1,,200,"Tea"
+Decaf Tea-rotating,Tea 1,,200,"Tea"
+Caffeinated Tea-Earl Grey,Tea 1,,200,"Tea"
+Caffeinated Tea-English Breakfast,Tea 1,,200,"Tea"
+Caffeinated Tea-Green,Tea 1,,200,"Tea"
+Caffeinated Tea-Chai,Tea 1,,200,"Tea"
+Stir sticks,Tea 2,,,"Tea"
+Creamer,Tea 2,,180,"Tea"
+Hot cups,Tea,200,1000,"Tea"
+Paper towels,Tea,,,"Tea"
+Disinfecting Wipes (Clorox),WR,3,12,"WR"
+Double sided tape,WR 1,,,"WR"
+Glue sticks,WR 1,,,"WR"
+"Blue tape (thin, 1"")",WR 2,2,6,"WR"
+"Blue tape (wide, 2"")",WR 2,2,6,"WR"
+Kleenex,WR 2,3,20,"WR"
+Scotch tape,WR 3,2,5,"WR"
+Small post it notes,WR 3,3,12,"WR"
+Medium post it notes,WR 3,3,18,"WR"
+Large post it notes,WR 3,3,12,"WR"
+Name badges,WR 3,50,500,"WR"
+Pens,WR 4,6,24,"WR"
+Sharpies,WR 4,6,12,"WR"
+Small paper clips,WR 4,1,,"WR"
+Big paper clips,WR 4,1,,"WR"
+Staples,WR 4,1,,"WR"
+Small binder clips,WR 4,1,,"WR"
+Medium binder clips,WR 4,1,,"WR"
+Large binder clips,WR 4,1,,"WR"
+Highlighters,WR 5,2,12,"WR"
+Dry erase markers,WR 5,2,4,"WR"
+Pencils,WR 5,6,24,"WR"
+Legal pads,WR 7,3,12,"WR"
+File folders,WR 7,1,1,"WR"
+Hanging file folders,WR 7,1,1,"WR"

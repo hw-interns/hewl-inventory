@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import InventoryService from "@/services/InventoryServices";
 import ItemProps from "@/data/item-props";
 
@@ -6,35 +7,63 @@ const EditItemForm = ({
   item,
   onClose,
   onItemUpdated,
+  allTags,
 }: {
   item: ItemProps;
   onClose: () => void;
   onItemUpdated: () => void;
+  allTags: string[];
 }) => {
+  const { data: session } = useSession();
   const [quantity, setQuantity] = useState(item.quantity);
   const [minQuantity, setMinQuantity] = useState(item.min_quantity);
   const [location, setLocation] = useState(item.location);
+  const [tags, setTags] = useState(item.tags);
+  const initialTagsArray = item.tags ? item.tags.split(";") : [];
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialTagsArray);
+  const [newTag, setNewTag] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (quantity < minQuantity) {
+      const confirmUpdate = window.confirm(
+        `Updating the quantity to ${quantity} will fall below the minimum quantity of ${minQuantity}. Do you want to proceed and trigger an email notification?`
+      );
+      if (!confirmUpdate) {
+        return;
+      }
+    }
 
     try {
       await InventoryService.updateSupply(
         Number(item.id),
         quantity,
         minQuantity,
-        location
+        location,
+        tags,
+        session?.user?.name as string
       );
-      console.log("Item updated");
-      console.log("Quantity:", quantity);
-      console.log("Min Quantity:", minQuantity);
-      console.log("Location:", location);
-      console.log("Item ID:", item.id);
       onClose();
       onItemUpdated();
     } catch (error) {
       console.error("Error updating item:", error);
     }
+  };
+
+  const toggleTagSelection = (tag: string) => {
+    setSelectedTags((prevSelectedTags) =>
+      prevSelectedTags.includes(tag)
+        ? prevSelectedTags.filter((t) => t !== tag)
+        : [...prevSelectedTags, tag]
+    );
+  };
+
+  const addNewTag = () => {
+    if (newTag && !selectedTags.includes(newTag)) {
+      setSelectedTags([...selectedTags, newTag]);
+    }
+    setNewTag("");
   };
 
   return (
@@ -87,7 +116,7 @@ const EditItemForm = ({
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="my-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           />
         </div>

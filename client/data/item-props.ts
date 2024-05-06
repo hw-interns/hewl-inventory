@@ -4,6 +4,7 @@ interface ItemProps {
   location: string;
   quantity: number;
   min_quantity: number;
+  tags: string;
 }
 
 export default ItemProps;
