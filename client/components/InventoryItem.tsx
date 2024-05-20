@@ -1,4 +1,8 @@
+"use client"
+import { useState } from "react";
 import ItemProps from "@/data/item-props";
+import ViewItemForm from "@/components/ViewItemForm";
+import Modal from "@/components/Modal";
 
 interface InventoryItemProps {
   item: ItemProps;
@@ -13,6 +17,11 @@ const InventoryItem = ({
   onTagClick,
   canEdit,
 }: InventoryItemProps) => {
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+  const handleOpenViewModal = () => setIsViewModalOpen(true);
+  const handleCloseViewModal = () => setIsViewModalOpen(false);
+
   return (
     <div className="border rounded-lg shadow p-4 bg-white relative">
       <h2 className="text-lg font-semibold mr-6">{item.name}</h2>
@@ -41,6 +50,12 @@ const InventoryItem = ({
       ) : (
         <div className="text-gray-600">No Tags</div>
       )}
+      <button
+        className="absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+        onClick={handleOpenViewModal}
+      >
+        Details
+      </button>
       {canEdit && (
         <button
           onClick={onEdit}
@@ -49,6 +64,9 @@ const InventoryItem = ({
           Edit
         </button>
       )}
+      <Modal show={isViewModalOpen} onClose={handleCloseViewModal}>
+        <ViewItemForm item={item} onClose={handleCloseViewModal} />
+      </Modal>
     </div>
   );
 };
