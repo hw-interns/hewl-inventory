@@ -6,14 +6,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const fetchSupplies = async () => {
   try {
     const response = await axios.get(`${API_URL}/supplies`);
-    const suppliesWithTags = response.data.map(
-      (item: ItemProps & { tags?: string[] }) => ({
+    const suppliesWithTagsAndLinks = response.data.map(
+      (item: ItemProps & { tags?: string[]; links?: string }) => ({
         ...item,
         tags: item.tags || [],
+        links: item.links ? item.links.split(',') : [],
       })
     );
-    console.log(suppliesWithTags);
-    return suppliesWithTags;
+    console.log(suppliesWithTagsAndLinks);
+    return suppliesWithTagsAndLinks;
   } catch (error) {
     console.error("Error fetching supplies:", error);
     throw error;

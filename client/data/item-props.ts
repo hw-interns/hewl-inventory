@@ -5,6 +5,8 @@ interface ItemProps {
   quantity: number;
   min_quantity: number;
   tags: string;
+  description?: string;
+  links?: string[];
 }
 
 export default ItemProps;

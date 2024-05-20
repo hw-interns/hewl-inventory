@@ -2,6 +2,7 @@ import csv
 from server import app, db, OfficeSupply
 
 def import_supplies(csv_filepath):
+    print('Importing supplies from CSV file...')
     with app.app_context():
         with open(csv_filepath, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -15,7 +16,9 @@ def import_supplies(csv_filepath):
                     department=row['Location'].strip(),
                     quantity=quantity,
                     min_quantity=min_quantity,
-                    tags=row['Tags'].strip()
+                    tags=row['Tags'].strip(),
+                    description=row['Description'].strip(),
+                    links=row['Links'].strip()
                 )
                 db.session.add(new_supply)
 

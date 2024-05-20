@@ -51,6 +51,8 @@ class OfficeSupply(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     min_quantity = db.Column(db.Integer, nullable=False)
     tags = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.String(120), nullable=True)
+    links = db.Column(db.String(120), nullable=True)
 
     def __repr__(self):
         return f'<OfficeSupply {self.name}>'
@@ -106,9 +108,17 @@ def get_supplies():
               min_quantity:
                 type: integer
                 example: 20
+              tags:
+                type: string
+                example: "office, supply"
+              description:
+                type: string
+                example: "A box of 100 pencils"
+              links:
+                type: string
+                example: "http://example.com"
     """
     supplies = OfficeSupply.query.all()
-    print('supplies', supplies)
     supply_list = [
         {
             'id': supply.id,
@@ -117,7 +127,9 @@ def get_supplies():
             'department': supply.department,
             'quantity': supply.quantity,
             'min_quantity': supply.min_quantity,
-            'tags': supply.tags 
+            'tags': supply.tags,
+            'description': supply.description,
+            'links': supply.links
         }
         for supply in supplies
     ]
@@ -151,6 +163,14 @@ def add():
         name: min_quantity
         type: integer
         required: true
+      - in: formData
+        name: description
+        type: string
+        required: false
+      - in: formData
+        name: links
+        type: string
+        required: false
     responses:
       201:
         description: New supply added successfully
@@ -171,6 +191,8 @@ def add():
     min_quantity = request.form.get('min_quantity', '')
     user = request.form.get('user', 'Unknown')
     tags = request.form.get('tags', '')
+    description = request.form.get('description', '')
+    links = request.form.get('links', '')
 
     new_supply = OfficeSupply(
         name=name,
@@ -178,7 +200,9 @@ def add():
         department=department,
         quantity=quantity,
         min_quantity=min_quantity,
-        tags=tags
+        tags=tags,
+        description=description,
+        links=links
     )
     db.session.add(new_supply)
     db.session.flush()
@@ -232,6 +256,16 @@ def update():
         type: string
         required: false
         description: Updated tags associated with the supply, delimited by commas or another separator.
+      - name: description
+        in: formData
+        type: string
+        required: false
+        description: Updated description of the supply.
+      - name: links
+        in: formData
+        type: string
+        required: false
+        description: Updated links associated with the supply, delimited by commas or another separator.
       - name: user
         in: formData
         type: string
@@ -268,6 +302,8 @@ def update():
     new_min_quantity = request.form.get('min_quantity')
     new_location = request.form.get('location')
     tags = request.form.get('tags')
+    description = request.form.get('description')
+    links = request.form.get('links')
     user = request.form.get('user', 'Unknown')
 
     supply = OfficeSupply.query.get(id)
@@ -288,9 +324,15 @@ def update():
     if tags is not None:
       supply.tags = tags
 
+    if description is not None:
+      supply.description = description
+    if links is not None:
+      supply.links = links
+
     if new_quantity is not None:
         if new_quantity < supply.min_quantity:
             send_notification_email(supply.name, new_quantity, new_min_quantity)
+  
 
     new_log = ChangeLog(user=user, action=f"updated {supply.name} from {old_quantity} to {new_quantity}")
     db.session.add(new_log)
@@ -302,7 +344,9 @@ def update():
         'new_quantity': supply.quantity,
         'new_min_quantity': supply.min_quantity,
         'new_location': supply.location,
-        'tags': supply.tags
+        'tags': supply.tags,
+        'description': supply.description,
+        'links': supply.links
     })
 
 
